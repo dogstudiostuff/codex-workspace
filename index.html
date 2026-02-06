@@ -35,15 +35,9 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 1.4fr 0.9fr;
+      grid-template-columns: 1.1fr 1fr;
       gap: 16px;
       padding: 24px;
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
     }
 
     .panel {
@@ -77,32 +71,9 @@
       font-size: 1.5rem;
     }
 
-    .clicker {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 12px;
-    }
-
-    .clicker button {
-      width: 110px;
-      height: 110px;
-      border-radius: 24px;
-      background: radial-gradient(circle at top, #60a5fa, #1d4ed8);
-      border: none;
-      font-size: 2.5rem;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.4);
-    }
-
-    .clicker button:hover {
-      transform: translateY(-2px) scale(1.02);
-    }
-
     button {
       border: none;
-      padding: 10px 16px;
+      padding: 12px 18px;
       border-radius: 999px;
       font-weight: 600;
       cursor: pointer;
@@ -114,13 +85,6 @@
     button:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 16px rgba(56, 189, 248, 0.35);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
     }
 
     .actions {
@@ -143,33 +107,6 @@
       width: 100%;
     }
 
-    .shop-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .shop-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: #1f2937;
-      border-radius: 12px;
-    }
-
-    .shop-item h4 {
-      margin: 0 0 4px;
-    }
-
-    .shop-item p {
-      margin: 0;
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-
     footer {
       text-align: center;
       padding: 16px 24px 32px;
@@ -187,53 +124,51 @@
 <body>
   <header>
     <h1>Code Clicker</h1>
-    <p>Click the block to run your code, buy blocks with points, and build your automation.</p>
+    <p>Click for code points, unlock Blockly blocks, and automate your way to bigger scores.</p>
   </header>
 
   <main class="layout">
-    <div class="column">
-      <section class="panel">
-        <h2>Command Center</h2>
-        <div class="stats">
-          <div class="stat">
-            <span>Code Points</span>
-            <strong id="points">0</strong>
-          </div>
-          <div class="stat">
-            <span>Points / Click</span>
-            <strong id="pointsPerClick">1</strong>
-          </div>
-          <div class="stat">
-            <span>Auto Clickers</span>
-            <strong id="autoClickers">0</strong>
-          </div>
+    <section class="panel">
+      <h2>Command Center</h2>
+      <div class="stats">
+        <div class="stat">
+          <span>Code Points</span>
+          <strong id="points">0</strong>
         </div>
-        <div class="clicker">
-          <button id="blockButton" aria-label="Run Blockly code">🧱</button>
-          <div>
-            <p><strong>Block Runner</strong></p>
-            <p class="hint">Click the block to run your Blockly script and earn base points.</p>
-          </div>
+        <div class="stat">
+          <span>Points / Click</span>
+          <strong id="pointsPerClick">1</strong>
         </div>
-        <div class="actions">
-          <button id="resetButton">Reset Session</button>
+        <div class="stat">
+          <span>Auto Clickers</span>
+          <strong id="autoClickers">0</strong>
         </div>
-      </section>
-
-      <section class="panel">
-        <h2>Blockly Lab</h2>
-        <div id="blocklyArea"></div>
-      </section>
-    </div>
-
-    <aside class="panel">
-      <h2>Block Shop</h2>
+      </div>
+      <div class="actions">
+        <button id="clickButton">Generate Code</button>
+        <button id="runButton">Run My Blockly</button>
+        <button id="resetButton">Reset Session</button>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span>Unlocked Blocks</span>
+          <strong id="unlocked">Starter Kit</strong>
+        </div>
+        <div class="stat">
+          <span>Next Unlock</span>
+          <strong id="nextUnlock">10 pts</strong>
+        </div>
+      </div>
       <p class="hint">
-        Buy blocks with points. Each purchase adds one block you can use in your code.
-        If you place a block more times than you own, it won’t run.
+        Tip: Build a loop that calls <strong>add points</strong> or unlock a
+        <strong>super clicker</strong> to scale faster. Each tier adds more Blockly blocks.
       </p>
-      <div id="shopList" class="shop-list"></div>
-    </aside>
+    </section>
+
+    <section class="panel">
+      <h2>Blockly Lab</h2>
+      <div id="blocklyArea"></div>
+    </section>
   </main>
 
   <footer>
@@ -241,6 +176,9 @@
   </footer>
 
   <xml id="toolbox" style="display: none">
+    <category name="Game Actions" colour="#38bdf8">
+      <block type="add_points"></block>
+    </category>
     <category name="Logic" colour="#f97316">
       <block type="controls_if"></block>
       <block type="logic_compare"></block>
@@ -249,7 +187,7 @@
       <block type="controls_repeat_ext">
         <value name="TIMES">
           <shadow type="math_number">
-            <field name="NUM">3</field>
+            <field name="NUM">5</field>
           </shadow>
         </value>
       </block>
@@ -265,39 +203,86 @@
       points: 0,
       pointsPerClick: 1,
       autoClickers: 0,
+      unlockTier: 0,
     };
 
-    const inventory = {
-      add_points: 0,
-      start_auto_clicker: 0,
-      upgrade_click: 0,
-    };
-
-    const shopItems = [
+    const unlocks = [
       {
-        type: "add_points",
-        name: "Add Points",
-        description: "Adds extra points instantly.",
-        cost: 5,
+        name: "Starter Kit",
+        next: 10,
+        unlock: () => {},
       },
       {
-        type: "start_auto_clicker",
         name: "Auto Clicker",
-        description: "Starts a passive clicker at a chosen interval.",
-        cost: 12,
+        next: 25,
+        unlock: () => {
+          workspace.updateToolbox(`
+            <xml>
+              <category name="Game Actions" colour="#38bdf8">
+                <block type="add_points"></block>
+                <block type="start_auto_clicker"></block>
+              </category>
+              <category name="Logic" colour="#f97316">
+                <block type="controls_if"></block>
+                <block type="logic_compare"></block>
+              </category>
+              <category name="Loops" colour="#22c55e">
+                <block type="controls_repeat_ext">
+                  <value name="TIMES">
+                    <shadow type="math_number">
+                      <field name="NUM">5</field>
+                    </shadow>
+                  </value>
+                </block>
+              </category>
+              <category name="Math" colour="#eab308">
+                <block type="math_number"></block>
+                <block type="math_arithmetic"></block>
+              </category>
+            </xml>
+          `);
+        },
       },
       {
-        type: "upgrade_click",
-        name: "Upgrade Click",
-        description: "Boosts the points you earn per click.",
-        cost: 20,
+        name: "Super Clicker",
+        next: 60,
+        unlock: () => {
+          workspace.updateToolbox(`
+            <xml>
+              <category name="Game Actions" colour="#38bdf8">
+                <block type="add_points"></block>
+                <block type="start_auto_clicker"></block>
+                <block type="upgrade_click"></block>
+              </category>
+              <category name="Logic" colour="#f97316">
+                <block type="controls_if"></block>
+                <block type="logic_compare"></block>
+              </category>
+              <category name="Loops" colour="#22c55e">
+                <block type="controls_repeat_ext">
+                  <value name="TIMES">
+                    <shadow type="math_number">
+                      <field name="NUM">5</field>
+                    </shadow>
+                  </value>
+                </block>
+                <block type="controls_whileUntil"></block>
+              </category>
+              <category name="Math" colour="#eab308">
+                <block type="math_number"></block>
+                <block type="math_arithmetic"></block>
+              </category>
+            </xml>
+          `);
+        },
       },
     ];
 
     const pointsLabel = document.getElementById("points");
     const pointsPerClickLabel = document.getElementById("pointsPerClick");
     const autoClickerLabel = document.getElementById("autoClickers");
-    const shopList = document.getElementById("shopList");
+    const unlockedLabel = document.getElementById("unlocked");
+    const nextUnlockLabel = document.getElementById("nextUnlock");
 
     const workspace = Blockly.inject("blocklyArea", {
       toolbox: document.getElementById("toolbox"),
@@ -380,62 +365,19 @@
       return `upgradeClick(${boost});\n`;
     };
 
-    function updateToolbox() {
-      const categories = [
-        {
-          name: "Game Actions",
-          colour: "#38bdf8",
-          blocks: Object.entries(inventory)
-            .filter(([, count]) => count > 0)
-            .map(([type]) => `<block type="${type}"></block>`)
-            .join(""),
-        },
-      ];
-
-      const toolboxXml = `
-        <xml>
-          ${categories
-            .filter((category) => category.blocks)
-            .map(
-              (category) => `
-                <category name="${category.name}" colour="${category.colour}">
-                  ${category.blocks}
-                </category>
-              `
-            )
-            .join("")}
-          <category name="Logic" colour="#f97316">
-            <block type="controls_if"></block>
-            <block type="logic_compare"></block>
-          </category>
-          <category name="Loops" colour="#22c55e">
-            <block type="controls_repeat_ext">
-              <value name="TIMES">
-                <shadow type="math_number">
-                  <field name="NUM">3</field>
-                </shadow>
-              </value>
-            </block>
-          </category>
-          <category name="Math" colour="#eab308">
-            <block type="math_number"></block>
-            <block type="math_arithmetic"></block>
-          </category>
-        </xml>
-      `;
-      workspace.updateToolbox(toolboxXml);
-    }
-
     function updateUI() {
       pointsLabel.textContent = pointState.points.toFixed(0);
       pointsPerClickLabel.textContent = pointState.pointsPerClick.toFixed(1);
       autoClickerLabel.textContent = pointState.autoClickers;
+      unlockedLabel.textContent = unlocks[pointState.unlockTier]?.name ?? "All Unlocked";
+      const nextUnlock = unlocks[pointState.unlockTier + 1];
+      nextUnlockLabel.textContent = nextUnlock ? `${nextUnlock.next} pts` : "Maxed";
     }
 
     function addPoints(amount) {
       pointState.points += amount;
+      checkUnlocks();
       updateUI();
-      updateShop();
     }
 
     function upgradeClick(boost) {
@@ -452,37 +394,22 @@
       updateUI();
     }
 
-    function countBlocksUsed() {
-      const used = {
-        add_points: 0,
-        start_auto_clicker: 0,
-        upgrade_click: 0,
-      };
-      workspace.getAllBlocks().forEach((block) => {
-        if (Object.prototype.hasOwnProperty.call(used, block.type)) {
-          used[block.type] += 1;
-        }
-      });
-      return used;
-    }
-
-    function canRunCode() {
-      const used = countBlocksUsed();
-      const overLimit = Object.entries(used).find(
-        ([type, count]) => count > inventory[type]
-      );
-      if (overLimit) {
-        return `You placed ${overLimit[1]} ${overLimit[0]} blocks but only own ${inventory[overLimit[0]]}.`;
-      }
-      return null;
-    }
-
-    function runBlocklyCode() {
-      const limitMessage = canRunCode();
-      if (limitMessage) {
-        alert(limitMessage);
+    function checkUnlocks() {
+      const nextTier = unlocks[pointState.unlockTier + 1];
+      if (!nextTier) {
         return;
       }
+      if (pointState.points >= nextTier.next) {
+        pointState.unlockTier += 1;
+        nextTier.unlock();
+      }
+    }
+
+    document.getElementById("clickButton").addEventListener("click", () => {
+      addPoints(pointState.pointsPerClick);
+    });
+
+    document.getElementById("runButton").addEventListener("click", () => {
       const code = Blockly.JavaScript.workspaceToCode(workspace);
       const safeRunner = new Function(
         "addPoints",
@@ -491,65 +418,19 @@
         `"use strict";\n${code}`
       );
       safeRunner(addPoints, startAutoClicker, upgradeClick);
-    }
-
-    function buyBlock(type) {
-      const item = shopItems.find((entry) => entry.type === type);
-      if (!item || pointState.points < item.cost) {
-        return;
-      }
-      pointState.points -= item.cost;
-      inventory[type] += 1;
-      updateToolbox();
-      updateUI();
-      updateShop();
-    }
-
-    function updateShop() {
-      shopList.innerHTML = "";
-      shopItems.forEach((item) => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "shop-item";
-
-        const info = document.createElement("div");
-        info.innerHTML = `
-          <h4>${item.name} (Owned: ${inventory[item.type]})</h4>
-          <p>${item.description}</p>
-          <p>Cost: ${item.cost} pts</p>
-        `;
-
-        const button = document.createElement("button");
-        button.textContent = `Buy`;
-        button.disabled = pointState.points < item.cost;
-        button.addEventListener("click", () => buyBlock(item.type));
-
-        wrapper.appendChild(info);
-        wrapper.appendChild(button);
-        shopList.appendChild(wrapper);
-      });
-    }
-
-    document.getElementById("blockButton").addEventListener("click", () => {
-      addPoints(pointState.pointsPerClick);
-      runBlocklyCode();
     });
 
     document.getElementById("resetButton").addEventListener("click", () => {
       pointState.points = 0;
       pointState.pointsPerClick = 1;
       pointState.autoClickers = 0;
-      Object.keys(inventory).forEach((key) => {
-        inventory[key] = 0;
-      });
+      pointState.unlockTier = 0;
       workspace.clear();
-      updateToolbox();
+      workspace.updateToolbox(document.getElementById("toolbox"));
       updateUI();
-      updateShop();
     });
 
-    updateToolbox();
     updateUI();
-    updateShop();
   </script>
 </body>
 </html>
