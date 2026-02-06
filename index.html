@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code Clicker</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    header {
+      padding: 24px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 2.2rem;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr;
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel {
+      background: #111827;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .stat {
+      padding: 12px;
+      background: #1f2937;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat span {
+      display: block;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .stat strong {
+      font-size: 1.5rem;
+    }
+
+    .clicker {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .clicker button {
+      width: 110px;
+      height: 110px;
+      border-radius: 24px;
+      background: radial-gradient(circle at top, #60a5fa, #1d4ed8);
+      border: none;
+      font-size: 2.5rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.4);
+    }
+
+    .clicker button:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #38bdf8;
+      color: #0f172a;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(56, 189, 248, 0.35);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hint {
+      background: #0b1120;
+      padding: 12px 16px;
+      border-left: 4px solid #38bdf8;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    #blocklyArea {
+      height: 560px;
+      width: 100%;
+    }
+
+    .shop-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .shop-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #1f2937;
+      border-radius: 12px;
+    }
+
+    .shop-item h4 {
+      margin: 0 0 4px;
+    }
+
+    .shop-item p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px 24px 32px;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Code Clicker</h1>
+    <p>Click the block to run your code, buy blocks with points, and build your automation.</p>
+  </header>
+
+  <main class="layout">
+    <div class="column">
+      <section class="panel">
+        <h2>Command Center</h2>
+        <div class="stats">
+          <div class="stat">
+            <span>Code Points</span>
+            <strong id="points">0</strong>
+          </div>
+          <div class="stat">
+            <span>Points / Click</span>
+            <strong id="pointsPerClick">1</strong>
+          </div>
+          <div class="stat">
+            <span>Auto Clickers</span>
+            <strong id="autoClickers">0</strong>
+          </div>
+        </div>
+        <div class="clicker">
+          <button id="blockButton" aria-label="Run Blockly code">🧱</button>
+          <div>
+            <p><strong>Block Runner</strong></p>
+            <p class="hint">Click the block to run your Blockly script and earn base points.</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="resetButton">Reset Session</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Blockly Lab</h2>
+        <div id="blocklyArea"></div>
+      </section>
+    </div>
+
+    <aside class="panel">
+      <h2>Block Shop</h2>
+      <p class="hint">
+        Buy blocks with points. Each purchase adds one block you can use in your code.
+        If you place a block more times than you own, it won’t run.
+      </p>
+      <div id="shopList" class="shop-list"></div>
+    </aside>
+  </main>
+
+  <footer>
+    Created in the Code Clicker lab — stack blocks, run code, and watch your points climb.
+  </footer>
+
+  <xml id="toolbox" style="display: none">
+    <category name="Logic" colour="#f97316">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+    </category>
+    <category name="Loops" colour="#22c55e">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">3</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="Math" colour="#eab308">
+      <block type="math_number"></block>
+      <block type="math_arithmetic"></block>
+    </category>
+  </xml>
+
+  <script>
+    const pointState = {
+      points: 0,
+      pointsPerClick: 1,
+      autoClickers: 0,
+    };
+
+    const inventory = {
+      add_points: 0,
+      start_auto_clicker: 0,
+      upgrade_click: 0,
+    };
+
+    const shopItems = [
+      {
+        type: "add_points",
+        name: "Add Points",
+        description: "Adds extra points instantly.",
+        cost: 5,
+      },
+      {
+        type: "start_auto_clicker",
+        name: "Auto Clicker",
+        description: "Starts a passive clicker at a chosen interval.",
+        cost: 12,
+      },
+      {
+        type: "upgrade_click",
+        name: "Upgrade Click",
+        description: "Boosts the points you earn per click.",
+        cost: 20,
+      },
+    ];
+
+    const pointsLabel = document.getElementById("points");
+    const pointsPerClickLabel = document.getElementById("pointsPerClick");
+    const autoClickerLabel = document.getElementById("autoClickers");
+    const shopList = document.getElementById("shopList");
+
+    const workspace = Blockly.inject("blocklyArea", {
+      toolbox: document.getElementById("toolbox"),
+      grid: {
+        spacing: 20,
+        length: 3,
+        colour: "#1f2937",
+        snap: true,
+      },
+      zoom: {
+        controls: true,
+        wheel: true,
+      },
+      trashcan: true,
+      theme: Blockly.Themes.Dark,
+    });
+
+    Blockly.defineBlocksWithJsonArray([
+      {
+        type: "add_points",
+        message0: "add %1 code points",
+        args0: [
+          {
+            type: "field_number",
+            name: "AMOUNT",
+            value: 1,
+            min: 1,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: 200,
+      },
+      {
+        type: "start_auto_clicker",
+        message0: "start auto clicker (every %1 sec)",
+        args0: [
+          {
+            type: "field_number",
+            name: "SECONDS",
+            value: 1,
+            min: 0.5,
+            max: 10,
+            precision: 0.5,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: 190,
+      },
+      {
+        type: "upgrade_click",
+        message0: "upgrade click power by %1",
+        args0: [
+          {
+            type: "field_number",
+            name: "BOOST",
+            value: 1,
+            min: 1,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: 210,
+      },
+    ]);
+
+    Blockly.JavaScript.forBlock["add_points"] = (block) => {
+      const amount = Number(block.getFieldValue("AMOUNT")) || 0;
+      return `addPoints(${amount});\n`;
+    };
+
+    Blockly.JavaScript.forBlock["start_auto_clicker"] = (block) => {
+      const seconds = Number(block.getFieldValue("SECONDS")) || 1;
+      return `startAutoClicker(${seconds});\n`;
+    };
+
+    Blockly.JavaScript.forBlock["upgrade_click"] = (block) => {
+      const boost = Number(block.getFieldValue("BOOST")) || 1;
+      return `upgradeClick(${boost});\n`;
+    };
+
+    function updateToolbox() {
+      const categories = [
+        {
+          name: "Game Actions",
+          colour: "#38bdf8",
+          blocks: Object.entries(inventory)
+            .filter(([, count]) => count > 0)
+            .map(([type]) => `<block type="${type}"></block>`)
+            .join(""),
+        },
+      ];
+
+      const toolboxXml = `
+        <xml>
+          ${categories
+            .filter((category) => category.blocks)
+            .map(
+              (category) => `
+                <category name="${category.name}" colour="${category.colour}">
+                  ${category.blocks}
+                </category>
+              `
+            )
+            .join("")}
+          <category name="Logic" colour="#f97316">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+          </category>
+          <category name="Loops" colour="#22c55e">
+            <block type="controls_repeat_ext">
+              <value name="TIMES">
+                <shadow type="math_number">
+                  <field name="NUM">3</field>
+                </shadow>
+              </value>
+            </block>
+          </category>
+          <category name="Math" colour="#eab308">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+          </category>
+        </xml>
+      `;
+      workspace.updateToolbox(toolboxXml);
+    }
+
+    function updateUI() {
+      pointsLabel.textContent = pointState.points.toFixed(0);
+      pointsPerClickLabel.textContent = pointState.pointsPerClick.toFixed(1);
+      autoClickerLabel.textContent = pointState.autoClickers;
+    }
+
+    function addPoints(amount) {
+      pointState.points += amount;
+      updateUI();
+      updateShop();
+    }
+
+    function upgradeClick(boost) {
+      pointState.pointsPerClick += boost;
+      updateUI();
+    }
+
+    function startAutoClicker(seconds) {
+      const interval = Math.max(0.5, Number(seconds)) * 1000;
+      pointState.autoClickers += 1;
+      setInterval(() => {
+        addPoints(pointState.pointsPerClick);
+      }, interval);
+      updateUI();
+    }
+
+    function countBlocksUsed() {
+      const used = {
+        add_points: 0,
+        start_auto_clicker: 0,
+        upgrade_click: 0,
+      };
+      workspace.getAllBlocks().forEach((block) => {
+        if (Object.prototype.hasOwnProperty.call(used, block.type)) {
+          used[block.type] += 1;
+        }
+      });
+      return used;
+    }
+
+    function canRunCode() {
+      const used = countBlocksUsed();
+      const overLimit = Object.entries(used).find(
+        ([type, count]) => count > inventory[type]
+      );
+      if (overLimit) {
+        return `You placed ${overLimit[1]} ${overLimit[0]} blocks but only own ${inventory[overLimit[0]]}.`;
+      }
+      return null;
+    }
+
+    function runBlocklyCode() {
+      const limitMessage = canRunCode();
+      if (limitMessage) {
+        alert(limitMessage);
+        return;
+      }
+      const code = Blockly.JavaScript.workspaceToCode(workspace);
+      const safeRunner = new Function(
+        "addPoints",
+        "startAutoClicker",
+        "upgradeClick",
+        `"use strict";\n${code}`
+      );
+      safeRunner(addPoints, startAutoClicker, upgradeClick);
+    }
+
+    function buyBlock(type) {
+      const item = shopItems.find((entry) => entry.type === type);
+      if (!item || pointState.points < item.cost) {
+        return;
+      }
+      pointState.points -= item.cost;
+      inventory[type] += 1;
+      updateToolbox();
+      updateUI();
+      updateShop();
+    }
+
+    function updateShop() {
+      shopList.innerHTML = "";
+      shopItems.forEach((item) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "shop-item";
+
+        const info = document.createElement("div");
+        info.innerHTML = `
+          <h4>${item.name} (Owned: ${inventory[item.type]})</h4>
+          <p>${item.description}</p>
+          <p>Cost: ${item.cost} pts</p>
+        `;
+
+        const button = document.createElement("button");
+        button.textContent = `Buy`;
+        button.disabled = pointState.points < item.cost;
+        button.addEventListener("click", () => buyBlock(item.type));
+
+        wrapper.appendChild(info);
+        wrapper.appendChild(button);
+        shopList.appendChild(wrapper);
+      });
+    }
+
+    document.getElementById("blockButton").addEventListener("click", () => {
+      addPoints(pointState.pointsPerClick);
+      runBlocklyCode();
+    });
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      pointState.points = 0;
+      pointState.pointsPerClick = 1;
+      pointState.autoClickers = 0;
+      Object.keys(inventory).forEach((key) => {
+        inventory[key] = 0;
+      });
+      workspace.clear();
+      updateToolbox();
+      updateUI();
+      updateShop();
+    });
+
+    updateToolbox();
+    updateUI();
+    updateShop();
+  </script>
+</body>
+</html>
